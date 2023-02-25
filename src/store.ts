@@ -2,14 +2,23 @@ import { createClient } from "@liveblocks/client";
 import { liveblocksEnhancer } from "@liveblocks/redux";
 import { configureStore, createSlice } from "@reduxjs/toolkit";
 
+let PUBLIC_KEY = process.env.REACT_APP_LIVE_BLOCKS_API_KEY as string;
+
+overrideApiKey();
+
+if (!/^pk_(live|test)/.test(PUBLIC_KEY)) {
+  console.warn(
+    `Replace "${PUBLIC_KEY}" by your public key from https://liveblocks.io/dashboard/apikeys.\n` +
+      `Learn more: https://github.com/liveblocks/liveblocks/tree/main/examples/redux-todo-list#getting-started.`
+  );
+}
+
 const client = createClient({
-  //   publicApiKey:
-  //     "pk_dev_8J6eEBH8TjYzD4gJ_-_QjFksLv5zWX6ZdR3YIDPEDOy-CEAC_U6jnNp-4rM2aRAL",
-  publicApiKey: process.env.REACT_APP_LIVE_BLOCKS_API_KEY as string,
+  publicApiKey: PUBLIC_KEY,
 });
 
 const initialState: any = {
-  todo: [],
+  todos: [],
   draft: "",
   isTyping: false,
 };
@@ -33,9 +42,9 @@ const slice = createSlice({
   },
 });
 
-export const { setDraft, addTodo, deleteTodo } = slice.actions;
+export const { addTodo, deleteTodo, setDraft } = slice.actions;
 
-function makeStore() {
+export function makeStore() {
   return configureStore({
     reducer: slice.reducer,
     enhancers: [
@@ -43,7 +52,7 @@ function makeStore() {
         client,
         storageMapping: { todos: true },
         presenceMapping: { isTyping: true },
-      }),
+      } as any),
     ],
   });
 }
@@ -51,3 +60,16 @@ function makeStore() {
 const store = makeStore();
 
 export default store;
+
+/**
+ * This function is used when deploying an example on liveblocks.io.
+ * You can ignore it completely if you run the example locally.
+ */
+function overrideApiKey() {
+  const query = new URLSearchParams(window?.location?.search);
+  const apiKey = query.get("apiKey");
+
+  if (apiKey) {
+    PUBLIC_KEY = apiKey;
+  }
+}

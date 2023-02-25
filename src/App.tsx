@@ -1,8 +1,13 @@
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { actions } from "@liveblocks/redux";
+import { addTodo, deleteTodo, setDraft } from "./store";
 import "./App.css";
-import { setDraft, addTodo, deleteTodo } from "./store";
+
+let roomId = "redux-todo-list";
+
+overrideRoomId();
+
 function WhoIsHere() {
   const othersUsersCount = useSelector(
     (state: any) => state.liveblocks.others.length
@@ -31,12 +36,20 @@ export default function App() {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    dispatch(actions.enterRoom("room-id"));
+    dispatch(actions.enterRoom(roomId));
 
     return () => {
-      dispatch(actions.leaveRoom("room-id"));
+      dispatch(actions.leaveRoom(roomId));
     };
   }, [dispatch]);
+
+  if (todos == null) {
+    return (
+      <div className="loading">
+        <img src="https://liveblocks.io/loading.svg" alt="Loading" />
+      </div>
+    );
+  }
 
   return (
     <div className="container">
@@ -52,7 +65,7 @@ export default function App() {
             dispatch(addTodo());
           }
         }}
-      ></input>
+      />
       <SomeoneIsTyping />
       {todos.map((todo: any, index: number) => {
         return (
@@ -69,4 +82,17 @@ export default function App() {
       })}
     </div>
   );
+}
+
+/**
+ * This function is used when deploying an example on liveblocks.io.
+ * You can ignore it completely if you run the example locally.
+ */
+function overrideRoomId() {
+  const query = new URLSearchParams(window?.location?.search);
+  const roomIdSuffix = query.get("roomId");
+
+  if (roomIdSuffix) {
+    roomId = `${roomId}-${roomIdSuffix}`;
+  }
 }
