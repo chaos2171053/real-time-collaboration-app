@@ -8,21 +8,32 @@ const client = createClient({
   publicApiKey: process.env.REACT_APP_LIVE_BLOCKS_API_KEY as string,
 });
 
-const initialState = {
-  cursor: { x: 0, y: 0 },
+const initialState: any = {
+  todo: [],
+  draft: "",
+  isTyping: false,
 };
 
 const slice = createSlice({
   name: "state",
   initialState,
   reducers: {
-    setCursor: (state, action) => {
-      state.cursor = action.payload;
+    setDraft: (state, action) => {
+      state.isTyping = action.payload === "" ? false : true;
+      state.draft = action.payload;
+    },
+    addTodo: (state) => {
+      state.isTyping = false;
+      state.todos.push({ text: state.draft });
+      state.draft = "";
+    },
+    deleteTodo: (state, action) => {
+      state.todos.splice(action.payload, 1);
     },
   },
 });
 
-export const { setCursor } = slice.actions;
+export const { setDraft, addTodo, deleteTodo } = slice.actions;
 
 function makeStore() {
   return configureStore({
@@ -30,7 +41,8 @@ function makeStore() {
     enhancers: [
       liveblocksEnhancer({
         client,
-        presenceMapping: { cursor: true },
+        storageMapping: { todos: true },
+        presenceMapping: { isTyping: true },
       }),
     ],
   });
