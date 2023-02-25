@@ -1,26 +1,33 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { actions } from "@liveblocks/redux";
+import "./App.css";
 
-function App() {
+function WhoIsHere() {
+  const othersUsersCount = useSelector(
+    (state: any) => state.liveblocks.others.length
+  );
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="who_is_here">
+      There are {othersUsersCount} other users online
     </div>
   );
 }
+export default function App() {
+  const dispatch = useDispatch();
 
-export default App;
+  useEffect(() => {
+    dispatch(actions.enterRoom("room-id"));
+
+    return () => {
+      dispatch(actions.leaveRoom("room-id"));
+    };
+  }, [dispatch]);
+
+  return (
+    <div className="container">
+      <WhoIsHere />
+    </div>
+  );
+}
